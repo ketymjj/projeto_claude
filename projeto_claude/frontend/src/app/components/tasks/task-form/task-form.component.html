@@ -1,0 +1,131 @@
+<div class="page-header">
+  <h2>
+    <i class="bi bi-check2-square me-2 text-primary"></i>
+    {{ isEdit ? 'Edit Task' : 'New Task' }}
+  </h2>
+</div>
+
+<div *ngIf="loading" class="loading-spinner">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
+
+<div *ngIf="error" class="alert alert-danger" role="alert">
+  <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
+</div>
+
+<div *ngIf="!loading" class="card">
+  <div class="card-header">
+    {{ isEdit ? 'Edit task details' : 'Fill in the task details' }}
+  </div>
+  <div class="card-body">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="row">
+        <div class="col-md-8 mb-3">
+          <label for="title" class="form-label">
+            Title <span class="required-star">*</span>
+          </label>
+          <input
+            id="title"
+            type="text"
+            class="form-control"
+            formControlName="title"
+            [class.is-invalid]="f['title'].touched && f['title'].invalid"
+            placeholder="Task title"
+          />
+          <div class="invalid-feedback">
+            <span *ngIf="f['title'].errors?.['required']">Title is required.</span>
+            <span *ngIf="f['title'].errors?.['maxlength']">Title cannot exceed 200 characters.</span>
+          </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <label for="projectId" class="form-label">
+            Project <span class="required-star">*</span>
+          </label>
+          <select
+            id="projectId"
+            class="form-select"
+            formControlName="projectId"
+            [class.is-invalid]="f['projectId'].touched && f['projectId'].invalid"
+          >
+            <option [value]="null" disabled>Select a project</option>
+            <option *ngFor="let p of projects" [value]="p.id">{{ p.name }}</option>
+          </select>
+          <div class="invalid-feedback">Project is required.</div>
+          <div *ngIf="projects.length === 0" class="form-text text-warning">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            No projects available. <a routerLink="/projects/new">Create one first.</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <textarea
+          id="description"
+          class="form-control"
+          formControlName="description"
+          [class.is-invalid]="f['description'].touched && f['description'].invalid"
+          rows="3"
+          placeholder="Optional description"
+        ></textarea>
+        <div class="invalid-feedback">Description cannot exceed 1000 characters.</div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label for="status" class="form-label">
+            Status <span class="required-star">*</span>
+          </label>
+          <select
+            id="status"
+            class="form-select"
+            formControlName="status"
+            [class.is-invalid]="f['status'].touched && f['status'].invalid"
+          >
+            <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
+          </select>
+          <div class="invalid-feedback">Status is required.</div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <label for="priority" class="form-label">
+            Priority <span class="required-star">*</span>
+          </label>
+          <select
+            id="priority"
+            class="form-select"
+            formControlName="priority"
+            [class.is-invalid]="f['priority'].touched && f['priority'].invalid"
+          >
+            <option *ngFor="let p of priorityOptions" [value]="p">{{ p }}</option>
+          </select>
+          <div class="invalid-feedback">Priority is required.</div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <label for="dueDate" class="form-label">Due Date</label>
+          <input
+            id="dueDate"
+            type="date"
+            class="form-control"
+            formControlName="dueDate"
+          />
+        </div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary" [disabled]="saving">
+          <span *ngIf="saving" class="spinner-border spinner-border-sm me-2" role="status"></span>
+          <i *ngIf="!saving" class="bi bi-check-lg me-1"></i>
+          {{ isEdit ? 'Update Task' : 'Create Task' }}
+        </button>
+        <button type="button" class="btn btn-outline-secondary" (click)="onCancel()" [disabled]="saving">
+          <i class="bi bi-x-lg me-1"></i>Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,108 @@
+<div class="page-header d-flex justify-content-between align-items-center">
+  <h2>
+    <i class="bi bi-check2-square me-2 text-primary"></i>Tarefas
+    <small *ngIf="filterProjectId" class="fs-6 text-muted ms-2">(projeto #{{ filterProjectId }})</small>
+  </h2>
+  <div class="d-flex gap-2">
+    <button *ngIf="filterProjectId" class="btn btn-outline-secondary" (click)="clearFilter()">
+      <i class="bi bi-x-circle me-1"></i>Limpar Filtro
+    </button>
+    <a routerLink="/tasks/new" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-1"></i>Nova Tarefa
+    </a>
+  </div>
+</div>
+
+<div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+  <i class="bi bi-check-circle me-2"></i>{{ successMessage }}
+  <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+</div>
+
+<div *ngIf="error" class="alert alert-danger" role="alert">
+  <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
+  <button class="btn btn-sm btn-outline-danger ms-3" (click)="loadTasks()">Tentar novamente</button>
+</div>
+
+<div *ngIf="loading" class="loading-spinner">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Carregando...</span>
+  </div>
+</div>
+
+<ng-container *ngIf="!loading && !error">
+
+  <div *ngIf="tasks.length === 0" class="card">
+    <div class="card-body empty-state">
+      <div class="empty-icon"><i class="bi bi-clipboard-x"></i></div>
+      <h5>Nenhuma tarefa encontrada</h5>
+      <p class="text-muted">Crie sua primeira tarefa para começar.</p>
+      <a routerLink="/tasks/new" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Criar Tarefa
+      </a>
+    </div>
+  </div>
+
+  <div *ngIf="tasks.length > 0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <span class="text-muted small">{{ tasks.length }} tarefa(s)</span>
+    </div>
+
+    <div class="postit-grid">
+      <div *ngFor="let task of tasks"
+           class="postit"
+           [ngClass]="getPostitClass(task)">
+
+        <!-- Fita adesiva -->
+        <div class="postit-tape"></div>
+
+        <!-- Cabeçalho: status + prioridade -->
+        <div class="postit-header">
+          <span class="badge postit-status-badge" [ngClass]="getStatusBadgeClass(task.status)">
+            {{ getStatusLabel(task.status) }}
+          </span>
+          <span class="badge postit-status-badge" [ngClass]="getPriorityBadgeClass(task.priority)">
+            <i class="bi me-1" [ngClass]="getPriorityIcon(task.priority)"></i>
+            {{ getPriorityLabel(task.priority) }}
+          </span>
+        </div>
+
+        <!-- Título -->
+        <h6 class="postit-title">{{ task.title }}</h6>
+
+        <!-- Descrição -->
+        <p class="postit-desc">
+          {{ task.description ? (task.description.length > 80 ? task.description.substring(0,80) + '…' : task.description) : 'Sem descrição.' }}
+        </p>
+
+        <!-- Metadados -->
+        <div class="postit-meta">
+          <span>
+            <i class="bi bi-folder me-1"></i>{{ task.projectName || 'Projeto #' + task.projectId }}
+          </span>
+          <span *ngIf="task.dueDate" [class.text-danger]="isOverdue(task.dueDate)">
+            <i class="bi bi-calendar-event me-1"></i>{{ formatDate(task.dueDate) }}
+            <span *ngIf="isOverdue(task.dueDate)" class="ms-1 fw-semibold">⚠ vencida</span>
+          </span>
+        </div>
+
+        <!-- Ações -->
+        <div class="postit-actions">
+          <a [routerLink]="['/tasks', task.id, 'history']"
+             class="btn btn-sm btn-outline-secondary" title="Histórico">
+            <i class="bi bi-clock-history"></i>
+          </a>
+          <a [routerLink]="['/tasks', task.id, 'edit']"
+             class="btn btn-sm btn-outline-primary" title="Editar">
+            <i class="bi bi-pencil"></i>
+          </a>
+          <button class="btn btn-sm btn-outline-danger"
+                  (click)="deleteTask(task.id, task.title)" title="Excluir">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</ng-container>

@@ -1,0 +1,96 @@
+<div class="page-header d-flex justify-content-between align-items-center">
+  <h2><i class="bi bi-folder me-2 text-primary"></i>Projetos</h2>
+  <a routerLink="/projects/new" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i>Novo Projeto
+  </a>
+</div>
+
+<div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+  <i class="bi bi-check-circle me-2"></i>{{ successMessage }}
+  <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+</div>
+
+<div *ngIf="error" class="alert alert-danger" role="alert">
+  <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
+  <button class="btn btn-sm btn-outline-danger ms-3" (click)="loadProjects()">Tentar novamente</button>
+</div>
+
+<div *ngIf="loading" class="loading-spinner">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Carregando...</span>
+  </div>
+</div>
+
+<ng-container *ngIf="!loading && !error">
+
+  <div *ngIf="projects.length === 0" class="card">
+    <div class="card-body empty-state">
+      <div class="empty-icon"><i class="bi bi-folder-x"></i></div>
+      <h5>Nenhum projeto encontrado</h5>
+      <p class="text-muted">Crie seu primeiro projeto para começar.</p>
+      <a routerLink="/projects/new" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Criar Projeto
+      </a>
+    </div>
+  </div>
+
+  <div *ngIf="projects.length > 0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <span class="text-muted small">{{ projects.length }} projeto(s)</span>
+    </div>
+
+    <div class="postit-grid">
+      <div *ngFor="let project of projects"
+           class="postit"
+           [ngClass]="getPostitClass(project.status)">
+
+        <!-- Fita adesiva no topo -->
+        <div class="postit-tape"></div>
+
+        <!-- Cabeçalho -->
+        <div class="postit-header">
+          <span class="badge postit-status-badge" [ngClass]="getStatusBadgeClass(project.status)">
+            {{ getStatusLabel(project.status) }}
+          </span>
+          <span class="postit-id">#{{ project.id }}</span>
+        </div>
+
+        <!-- Título -->
+        <h6 class="postit-title">{{ project.name }}</h6>
+
+        <!-- Descrição -->
+        <p class="postit-desc">
+          {{ project.description ? (project.description.length > 80 ? project.description.substring(0, 80) + '…' : project.description) : 'Sem descrição.' }}
+        </p>
+
+        <!-- Metadados -->
+        <div class="postit-meta">
+          <span *ngIf="project.startDate">
+            <i class="bi bi-calendar3 me-1"></i>{{ formatDate(project.startDate) }}
+          </span>
+          <span>
+            <i class="bi bi-clock me-1"></i>{{ formatDate(project.createdAt) }}
+          </span>
+        </div>
+
+        <!-- Ações -->
+        <div class="postit-actions">
+          <a [routerLink]="['/tasks']" [queryParams]="{ projectId: project.id }"
+             class="btn btn-sm btn-outline-secondary" title="Ver tarefas">
+            <i class="bi bi-list-task me-1"></i>Tarefas
+          </a>
+          <a [routerLink]="['/projects', project.id, 'edit']"
+             class="btn btn-sm btn-outline-primary" title="Editar">
+            <i class="bi bi-pencil"></i>
+          </a>
+          <button class="btn btn-sm btn-outline-danger"
+                  (click)="deleteProject(project.id, project.name)" title="Excluir">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</ng-container>

@@ -1,0 +1,186 @@
+<!-- Loading -->
+<div *ngIf="loading" class="loading-spinner">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Carregando...</span>
+  </div>
+</div>
+
+<!-- Erro -->
+<div *ngIf="error" class="alert alert-danger mt-3">
+  <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
+  <a routerLink="/tasks" class="btn btn-sm btn-outline-danger ms-3">Voltar</a>
+</div>
+
+<!-- Conteúdo -->
+<ng-container *ngIf="!loading && !error && task">
+
+  <!-- Cabeçalho -->
+  <div class="page-header d-flex justify-content-between align-items-start">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <a routerLink="/tasks" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-arrow-left me-1"></i>Tarefas
+        </a>
+        <span class="text-muted">/</span>
+        <span class="text-muted small">Histórico</span>
+      </div>
+      <h2 class="mb-1">
+        <i class="bi bi-clock-history me-2 text-primary"></i>{{ task.title }}
+      </h2>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="badge" [ngClass]="getCurrentStatusBadge()">
+          {{ getStatusLabel(task.status) }}
+        </span>
+        <span class="text-muted small">
+          <i class="bi bi-folder me-1"></i>{{ task.projectName || 'Projeto #' + task.projectId }}
+        </span>
+        <span class="text-muted small" *ngIf="task.dueDate">
+          <i class="bi bi-calendar me-1"></i>Vence {{ formatDate(task.dueDate) }}
+        </span>
+      </div>
+    </div>
+    <a [routerLink]="['/tasks', task.id, 'edit']" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-pencil me-1"></i>Editar
+    </a>
+  </div>
+
+  <!-- Cards de resumo -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card text-center h-100 summary-card"
+           [class.summary-card--active]="activeFilter === 'all'"
+           (click)="applyFilter('all')" style="cursor:pointer;">
+        <div class="card-body py-3">
+          <div class="summary-number text-primary">{{ allHistory.length }}</div>
+          <div class="summary-label">Total de Registros</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card text-center h-100 summary-card"
+           [class.summary-card--active]="activeFilter === 'status'"
+           (click)="applyFilter('status')" style="cursor:pointer;">
+        <div class="card-body py-3">
+          <div class="summary-number text-info">{{ getStatusCount() }}</div>
+          <div class="summary-label">Mudanças de Status</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card text-center h-100 summary-card"
+           [class.summary-card--active]="activeFilter === 'priority'"
+           (click)="applyFilter('priority')" style="cursor:pointer;">
+        <div class="card-body py-3">
+          <div class="summary-number text-warning">{{ getPriorityCount() }}</div>
+          <div class="summary-label">Mudanças de Prioridade</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card text-center h-100 summary-card"
+           [class.summary-card--active]="activeFilter === 'other'"
+           (click)="applyFilter('other')" style="cursor:pointer;">
+        <div class="card-body py-3">
+          <div class="summary-number text-secondary">{{ getOtherCount() }}</div>
+          <div class="summary-label">Outros Campos</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card mb-4">
+    <div class="card-body py-2 px-3 d-flex align-items-center gap-2 flex-wrap">
+      <span class="text-muted small fw-semibold me-1">Filtrar:</span>
+      <button class="btn btn-sm" [class.btn-primary]="activeFilter==='all'" [class.btn-outline-secondary]="activeFilter!=='all'" (click)="applyFilter('all')">
+        <i class="bi bi-list me-1"></i>Tudo
+      </button>
+      <button class="btn btn-sm" [class.btn-info]="activeFilter==='status'" [class.btn-outline-secondary]="activeFilter!=='status'" (click)="applyFilter('status')">
+        <i class="bi bi-arrow-repeat me-1"></i>Status
+      </button>
+      <button class="btn btn-sm" [class.btn-warning]="activeFilter==='priority'" [class.btn-outline-secondary]="activeFilter!=='priority'" (click)="applyFilter('priority')">
+        <i class="bi bi-flag me-1"></i>Prioridade
+      </button>
+      <button class="btn btn-sm" [class.btn-secondary]="activeFilter==='other'" [class.btn-outline-secondary]="activeFilter!=='other'" (click)="applyFilter('other')">
+        <i class="bi bi-three-dots me-1"></i>Outros
+      </button>
+      <span class="ms-auto text-muted small">
+        {{ filteredHistory.length }} registro(s)
+      </span>
+    </div>
+  </div>
+
+  <!-- Timeline vazia -->
+  <div *ngIf="filteredHistory.length === 0" class="card">
+    <div class="card-body empty-state">
+      <div class="empty-icon"><i class="bi bi-clock"></i></div>
+      <h6>Nenhum registro encontrado</h6>
+      <small class="text-muted">Tente outro filtro ou edite a tarefa para gerar histórico.</small>
+    </div>
+  </div>
+
+  <!-- Timeline principal -->
+  <div *ngIf="filteredHistory.length > 0" class="history-timeline">
+
+    <div *ngFor="let item of filteredHistory"
+         class="history-item"
+         [class.history-item--created]="isCreation(item)"
+         [class.history-item--status]="isStatusChange(item)">
+
+      <div class="history-icon-wrap">
+        <i class="bi" [ngClass]="getFieldIcon(item.fieldChanged)"></i>
+      </div>
+
+      <div class="history-card">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="history-field-label">
+            <i class="bi me-1" [ngClass]="getFieldIcon(item.fieldChanged)"></i>
+            {{ getFieldLabel(item.fieldChanged) }}
+          </span>
+          <span class="history-date">
+            <i class="bi bi-clock me-1"></i>{{ formatDateTime(item.changedAt) }}
+          </span>
+        </div>
+
+        <!-- Mudança de Status — visual especial com badges -->
+        <ng-container *ngIf="isStatusChange(item); else defaultValues">
+          <div class="status-transition">
+            <span class="badge fs-status-badge" [ngClass]="getStatusBadgeClass(item.oldValue)">
+              {{ getStatusLabel(item.oldValue) }}
+            </span>
+            <i class="bi bi-arrow-right-circle-fill status-arrow"></i>
+            <span class="badge fs-status-badge" [ngClass]="getStatusBadgeClass(item.newValue)">
+              {{ getStatusLabel(item.newValue) }}
+            </span>
+          </div>
+        </ng-container>
+
+        <!-- Outros campos — layout old → new padrão -->
+        <ng-template #defaultValues>
+          <div class="history-values" *ngIf="item.oldValue || item.newValue">
+            <ng-container *ngIf="item.fieldChanged === 'Prioridade'; else textValues">
+              <span class="badge fs-status-badge" [ngClass]="getPriorityBadgeClass(item.oldValue)">
+                {{ getPriorityLabel(item.oldValue) }}
+              </span>
+              <i class="bi bi-arrow-right-circle-fill history-arrow"></i>
+              <span class="badge fs-status-badge" [ngClass]="getPriorityBadgeClass(item.newValue)">
+                {{ getPriorityLabel(item.newValue) }}
+              </span>
+            </ng-container>
+            <ng-template #textValues>
+              <span *ngIf="item.oldValue" class="history-badge history-badge--old">
+                <i class="bi bi-dash-circle me-1"></i>{{ item.oldValue }}
+              </span>
+              <i *ngIf="item.oldValue && item.newValue" class="bi bi-arrow-right-circle-fill history-arrow"></i>
+              <span *ngIf="item.newValue" class="history-badge history-badge--new">
+                <i class="bi bi-check-circle me-1"></i>{{ item.newValue }}
+              </span>
+            </ng-template>
+          </div>
+        </ng-template>
+      </div>
+
+    </div>
+  </div>
+
+</ng-container>

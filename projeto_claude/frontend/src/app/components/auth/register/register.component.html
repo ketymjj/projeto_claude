@@ -1,0 +1,73 @@
+<div class="min-vh-100 d-flex align-items-center justify-content-center bg-light">
+  <div class="card shadow-sm" style="width: 100%; max-width: 420px;">
+    <div class="card-body p-4">
+      <div class="text-center mb-4">
+        <i class="bi bi-person-plus fs-1 text-primary"></i>
+        <h4 class="mt-2 fw-bold">Criar Conta</h4>
+        <p class="text-muted small">Registre-se para começar</p>
+      </div>
+
+      <div *ngIf="errorMessage" class="alert alert-danger py-2">
+        <i class="bi bi-exclamation-triangle me-2"></i>{{ errorMessage }}
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Nome</label>
+          <input
+            type="text"
+            class="form-control"
+            [class.is-invalid]="form.get('name')?.invalid && form.get('name')?.touched"
+            formControlName="name"
+            placeholder="Seu nome"
+            autocomplete="name"
+          />
+          <div class="invalid-feedback">Nome deve ter pelo menos 2 caracteres.</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Email</label>
+          <input
+            type="email"
+            class="form-control"
+            [class.is-invalid]="form.get('email')?.invalid && form.get('email')?.touched"
+            formControlName="email"
+            placeholder="seu@email.com"
+            autocomplete="email"
+          />
+          <div class="invalid-feedback">Email inválido.</div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Senha</label>
+          <input
+            type="password"
+            class="form-control"
+            [class.is-invalid]="form.get('password')?.invalid && form.get('password')?.touched"
+            formControlName="password"
+            placeholder="Mínimo 6 caracteres"
+            autocomplete="new-password"
+          />
+          <div class="invalid-feedback">Senha deve ter pelo menos 6 caracteres.</div>
+        </div>
+
+        <button
+          type="submit"
+          class="btn btn-primary w-100"
+          [disabled]="loading"
+        >
+          <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+          <i *ngIf="!loading" class="bi bi-person-check me-2"></i>
+          {{ loading ? 'Criando conta...' : 'Criar Conta' }}
+        </button>
+      </form>
+
+      <hr class="my-4">
+
+      <p class="text-center text-muted small mb-0">
+        Já tem uma conta?
+        <a routerLink="/login" class="text-primary fw-semibold text-decoration-none">Entrar</a>
+      </p>
+    </div>
+  </div>
+</div>
